@@ -57,3 +57,6 @@ node_modules
 # Pnpm
 .pnpm-store
 
+
+# Local Netlify folder
+.netlify

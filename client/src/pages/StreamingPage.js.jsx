@@ -41,7 +41,7 @@ const StreamingPage = () => {
 	// Fetch initial match data
 	const getInitialMatchData = async () => {
 		try {
-			const { data } = await axios.get(`${SOCKET_SERVER_URL}/api/matches/${id}`);
+			const { data } = await axios.get(`${SOCKET_SERVER_URL}/matches/${id}`);
 			updateMatchData(data.data);
 		} catch (error) {
 			console.log(error);

@@ -3,14 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-export const SOCKET_SERVER_URL = "http://localhost:8000";
+export const SOCKET_SERVER_URL = "https://scoreticker.onrender.com/api";
 
 const HomePage = () => {
 	const [matches, setMatches] = useState([]);
 
 	const getMatches = async () => {
 		try {
-			const { data } = await axios.get(`${SOCKET_SERVER_URL}/api/matches`);
+			const { data } = await axios.get(`${SOCKET_SERVER_URL}/matches`);
 			setMatches(data.data);
 		} catch (error) {
 			console.log(error);

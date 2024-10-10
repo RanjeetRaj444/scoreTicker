@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchVenues } from "../utils/server-route";
+import { DB_URI, fetchVenues } from "../utils/server-route";
+import axios from "axios";
 
 const useVenues = () => {
 	const [venues, setVenues] = useState([]);
@@ -21,7 +22,17 @@ const useVenues = () => {
 		getVenues();
 	}, []);
 
-	return { venues, loading, error };
+	const createVenue = async (payload) => {
+		try {
+			const { data } = await axios.post(`${DB_URI}/venues`, payload);
+			return data?.data || null;
+		} catch (error) {
+			console.error("Error creating venue:", error.message);
+			throw new Error(error);
+		}
+	};
+
+	return { venues, loading, error, createVenue };
 };
 
 export default useVenues;

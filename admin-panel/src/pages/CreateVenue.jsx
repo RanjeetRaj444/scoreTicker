@@ -10,7 +10,7 @@ import {
 	Upload,
 	Typography,
 } from "antd";
-import React, { useState } from "react";
+import { useState } from "react";
 import useVenues from "../hooks/useVenues"; // A hook to create venues
 
 const { Title } = Typography;
@@ -53,7 +53,9 @@ const CreateVenue = () => {
 							<Form.Item
 								name="name"
 								label="Venue Name"
-								rules={[{ required: true, message: "Please enter venue name!" }]}
+								rules={[
+									{ required: true, message: "Please enter venue name!" },
+								]}
 							>
 								<Input placeholder="Enter venue name" />
 							</Form.Item>
@@ -76,14 +78,16 @@ const CreateVenue = () => {
 							<Form.Item
 								name="address"
 								label="Address"
-								rules={[{ required: true, message: "Please enter venue address!" }]}
+								rules={[
+									{ required: true, message: "Please enter venue address!" },
+								]}
 							>
 								<Input placeholder="Enter venue address" />
 							</Form.Item>
 						</Col>
 					</Row>
 
-					<Row gutter={24}>
+					{/* <Row gutter={24}>
 						<Col xs={24}>
 							<Form.Item name="images" label="Images">
 								<Upload
@@ -94,7 +98,7 @@ const CreateVenue = () => {
 								</Upload>
 							</Form.Item>
 						</Col>
-					</Row>
+					</Row> */}
 
 					<Form.Item>
 						<Button type="primary" htmlType="submit" block loading={loading}>
