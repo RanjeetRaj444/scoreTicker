@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* src/index.css or your custom CSS file */
+
+body {
+	background: #f4f7fe !important;
+}
+
+:root {
+	--primary-color: #4f46e5;
+	--secondary-color: #10b981;
+	--danger-color: #ef4444;
+	--success-color: #22c55e;
+	--warning-color: #f59e0b;
+	--info-color: #3b82f6;
+	--light-color: #f9fafb;
+	--dark-color: #1f2937;
+}
+
+.step-content {
+	transition: opacity 0.3s ease-in-out;
+}
