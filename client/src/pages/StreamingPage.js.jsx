@@ -41,7 +41,7 @@ const StreamingPage = () => {
 	// Fetch initial match data
 	const getInitialMatchData = async () => {
 		try {
-			const { data } = await axios.get(`${SOCKET_SERVER_URL}/matches/${id}`);
+			const { data } = await axios.get(`${SOCKET_SERVER_URL}/api/matches/${id}`);
 			updateMatchData(data.data);
 		} catch (error) {
 			console.log(error);
@@ -53,16 +53,20 @@ const StreamingPage = () => {
 
 		const socket = io(SOCKET_SERVER_URL);
 
-		// Listen for match updates
+		// Join the room for the specific match
+		socket.emit("joinMatchRoom", id);
+
+		// Listen for updates specific to this match
 		socket.on("matchUpdated", (data) => {
 			updateMatchData(data);
 		});
 
-		// Cleanup socket connection
 		return () => {
+			// Leave the room when the component unmounts
+			socket.emit("leaveMatchRoom", id);
 			socket.disconnect();
 		};
-	}, []);
+	}, [id]);
 
 	return (
 		<div className="min-h-screen bg-gray-900 text-white relative">

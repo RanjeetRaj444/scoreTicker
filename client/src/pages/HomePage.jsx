@@ -3,14 +3,14 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-export const SOCKET_SERVER_URL = "https://scoreticker.onrender.com/api";
+export const SOCKET_SERVER_URL = "https://scoreticker.onrender.com";
 
 const HomePage = () => {
 	const [matches, setMatches] = useState([]);
 
 	const getMatches = async () => {
 		try {
-			const { data } = await axios.get(`${SOCKET_SERVER_URL}/matches`);
+			const { data } = await axios.get(`${SOCKET_SERVER_URL}/api/matches`);
 			setMatches(data.data);
 		} catch (error) {
 			console.log(error);
@@ -25,7 +25,9 @@ const HomePage = () => {
 		<div className="min-h-screen bg-gray-900 text-white">
 			<div className="bg-hero bg-center bg-cover h-[60vh] flex flex-col justify-center items-center text-center p-10">
 				<h2 className="text-5xl font-bold">Watch Live Cricket Now!</h2>
-				<p className="mt-4 text-lg">Catch all the live action from the world of cricket.</p>
+				<p className="mt-4 text-lg">
+					Catch all the live action from the world of cricket.
+				</p>
 			</div>
 
 			<div className="mt-12 px-6">
@@ -81,7 +83,10 @@ const HomePage = () => {
 								))
 							) : (
 								<tr>
-									<td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+									<td
+										colSpan="4"
+										className="px-6 py-4 text-center text-gray-500"
+									>
 										No matches.
 									</td>
 								</tr>
