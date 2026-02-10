@@ -17,9 +17,7 @@ const seedAdmin = async () => {
     await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`);
     console.log("MongoDB connected!");
 
-    const adminEmail = "admin@mykhel.com";
-    const password = "adminpassword123"; // The user should change this immediately
-    const username = "superadmin";
+
 
     const existedUser = await User.findOne({
       $or: [{ username }, { email: adminEmail }],
