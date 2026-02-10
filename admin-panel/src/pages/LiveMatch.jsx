@@ -1,646 +1,748 @@
-import { Alert, Button, Col, notification, Row, Select, Steps, Table, Typography } from "antd";
+import {
+  Alert,
+  Button,
+  Col,
+  notification,
+  Row,
+  Select,
+  Spin,
+  Steps,
+  Table,
+  Typography,
+  Divider,
+} from "antd";
+import { TrophyFilled } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ballActions, ballExtras } from "../constants/enums";
 import useMatch from "../hooks/useMatch";
-const { Step } = Steps;
 
+// New structured components
+import MatchHeader from "../components/MatchHeader";
+import BallActionPanel from "../components/BallActionPanel";
+import StatsTable from "../components/StatsTable";
+
+const { Step } = Steps;
 const { Title } = Typography;
 
 const LiveMatchUpdate = () => {
-	const [tossWinner, setTossWinner] = useState(null);
-	const [tossDecision, setTossDecision] = useState(null);
-	const [overs, setOvers] = useState(0);
-	const [totalRuns, setTotalRuns] = useState(0);
-	const [wickets, setWickets] = useState(0);
-	const [currentBowler, setCurrentBowler] = useState({});
-	const [currentBatter, setCurrentBatter] = useState({});
-	const [battingPairs, setBattingPairs] = useState([]);
-	const [playerBatted, setPlayerBatted] = useState([]);
-	const [bowler, setBowlers] = useState([]);
-	const [bowlingPlayingXI, setBowlingPlayingXI] = useState();
-	const [battingPlayingXI, setBattingPlayingXI] = useState();
-	const [match, setMatch] = useState({});
+  const [tossWinner, setTossWinner] = useState(null);
+  const [tossDecision, setTossDecision] = useState(null);
+  const [overs, setOvers] = useState(0);
+  const [totalRuns, setTotalRuns] = useState(0);
+  const [wickets, setWickets] = useState(0);
+  const [currentBowler, setCurrentBowler] = useState(null);
+  const [currentBatter, setCurrentBatter] = useState(null);
+  const [nonStriker, setNonStriker] = useState(null);
+  const [battingPairs, setBattingPairs] = useState([]);
+  const [playerBatted, setPlayerBatted] = useState([]);
+  const [bowler, setBowlers] = useState([]);
+  const [bowlingPlayingXI, setBowlingPlayingXI] = useState([]);
+  const [battingPlayingXI, setBattingPlayingXI] = useState([]);
+  const [match, setMatch] = useState({});
+  const [selectedAction, setSelectedAction] = useState(null);
+  const [selectedExtra, setSelectedExtra] = useState(null);
+  const [matchHistory, setMatchHistory] = useState([]);
 
-	const { getMatch, updateMatch } = useMatch();
-	const { id } = useParams();
+  const { getMatch, updateMatch } = useMatch();
+  const { id } = useParams();
 
-	useEffect(() => {
-		getMatch(id)
-			.then((data) => {
-				setMatch(data);
-			})
-			.catch((err) => {
-				console.error(err);
-			});
-	}, [id]);
+  useEffect(() => {
+    getMatch(id)
+      .then((data) => setMatch(data))
+      .catch((err) => console.error(err));
+  }, [id]);
 
-	useEffect(() => {
-		const currentBattingTeam = match.teams?.find(
-			(team) => team._id === match.currentTeamBatting
-		);
-		const currentBowlingTeam = match.teams?.find(
-			(team) => team._id === match.currentTeamBowling
-		);
+  useEffect(() => {
+    if (!match.teams) return;
 
-		setOvers(currentBattingTeam?.overs ?? 0);
-		setTotalRuns(currentBattingTeam?.totalScore ?? 0);
-		setWickets(currentBattingTeam?.totalWickets ?? 0);
-		setTossWinner(currentBattingTeam);
-		setTossDecision(currentBattingTeam === currentBowlingTeam ? "Batting" : "Bowling");
-		setBattingPlayingXI(currentBattingTeam?.playing11);
-		setBowlingPlayingXI(currentBowlingTeam?.playing11);
-		setCurrentBall(match?.overPlayed ? Number(match?.overPlayed.toFixed(1).split(".")[1]) : 0);
-		setPlayerBatted(currentBattingTeam?.playing11?.filter(({ hasBatted }) => hasBatted) || []);
-		setBattingPairs(
-			currentBattingTeam?.playing11?.filter(
-				({ hasBatted, batting }) => hasBatted && !batting?.isOut
-			) || []
-		);
-		setCurrentBatter(match?.currentBatter);
-		setCurrentBowler(match?.currentBowler);
-		setBowlers(currentBowlingTeam?.playing11?.filter(({ hasBowled }) => hasBowled) || []);
-	}, [match]);
+    const currentBattingTeam = match.teams?.find(
+      (team) => team._id === match.currentTeamBatting,
+    );
+    const currentBowlingTeam = match.teams?.find(
+      (team) => team._id === match.currentTeamBowling,
+    );
 
-	const handleTossDecisionClick = () => {
-		const teams = match.teams;
-		const secondTeam = teams.find((team) => team._id !== tossWinner);
-		const tossPayLoad = {
-			tossWinner: tossWinner,
-			tossDecision: tossDecision,
-			currentTeamBatting: tossDecision === "Batting" ? tossWinner : secondTeam,
-			currentTeamBowling: tossDecision === "Batting" ? secondTeam : tossWinner,
-		};
+    setOvers(currentBattingTeam?.overs ?? 0);
+    setTotalRuns(currentBattingTeam?.totalScore ?? 0);
+    setWickets(currentBattingTeam?.totalWickets ?? 0);
+    setTossWinner(currentBattingTeam?._id);
+    setTossDecision(match.tossDecision);
+    setBattingPlayingXI(currentBattingTeam?.playing11 || []);
+    setBowlingPlayingXI(currentBowlingTeam?.playing11 || []);
 
-		updateMatch(id, tossPayLoad).then((data) => {
-			setMatch(data);
-		});
-	};
+    const batted =
+      currentBattingTeam?.playing11?.filter(({ hasBatted }) => hasBatted) || [];
+    setPlayerBatted(batted);
 
-	const [currentBall, setCurrentBall] = useState();
+    const pairs =
+      currentBattingTeam?.playing11?.filter(
+        ({ hasBatted, batting }) => hasBatted && !batting?.isOut,
+      ) || [];
+    setBattingPairs(pairs);
 
-	const [selectedAction, setSelectedAction] = useState(null);
-	const [selectedExtra, setSelectedExtra] = useState(null);
+    setCurrentBatter(match?.currentBatter);
+    setCurrentBowler(match?.currentBowler);
 
-	const handleActionClick = (item, type) => {
-		if (type === "action") {
-			if (selectedAction === item) {
-				setSelectedAction(null);
-			} else {
-				setSelectedAction(item);
-			}
-		} else if (type === "extra") {
-			if (selectedExtra === item) {
-				setSelectedExtra(null);
-			} else {
-				setSelectedExtra(item);
-			}
-		}
-	};
+    // Set non-striker
+    if (pairs.length === 2 && match?.currentBatter) {
+      setNonStriker(pairs.find((p) => p._id !== match.currentBatter._id));
+    }
 
-	const handleBallActionSubmit = () => {
-		const mainPayload = match;
-		const categories = []
-			.concat(
-				selectedAction ? selectedAction.category : [],
-				selectedExtra ? selectedExtra.category : []
-			)
-			.flatMap((category) => {
-				const [mainCategory, subCategory] = category.split(",");
-				return [mainCategory, subCategory];
-			})
-			.filter(Boolean);
+    setBowlers(
+      currentBowlingTeam?.playing11?.filter(({ hasBowled }) => hasBowled) || [],
+    );
+  }, [match]);
 
-		const totalRunOnBall = (selectedAction?.value ?? 0) + (selectedExtra?.value ?? 0);
+  const transformData = (data, type) => {
+    return (data || [])
+      .map((player) => {
+        const { batting, bowling, player: playerInfo } = player;
+        const playerName = playerInfo?.name || "Unknown";
 
-		const batsmanPayload = {
-			...currentBatter,
-			batting: {
-				...currentBatter.batting,
-				runs: !selectedExtra
-					? (currentBatter?.batting?.runs ?? 0) + totalRunOnBall
-					: currentBatter?.batting?.runs ?? 0,
-				ballFaced: !selectedExtra
-					? (currentBatter?.batting?.ballFaced ?? 0) + 1
-					: currentBatter?.batting?.ballFaced ?? 0,
-				fours:
-					categories.includes("fours") && !selectedExtra
-						? currentBatter?.batting?.fours + 1
-						: currentBatter?.batting?.fours,
-				sixes:
-					categories.includes("sixes") && !selectedExtra
-						? currentBatter?.batting?.sixes + 1
-						: currentBatter?.batting?.sixes,
-				threes:
-					categories.includes("threes") && !selectedExtra
-						? currentBatter?.batting?.threes + 1
-						: currentBatter?.batting?.threes,
-				twos:
-					categories.includes("twos") && !selectedExtra
-						? currentBatter?.batting?.twos + 1
-						: currentBatter?.batting?.twos,
-				singles:
-					categories.includes("singles") && !selectedExtra
-						? currentBatter?.batting?.singles + 1
-						: currentBatter?.batting?.singles,
-				isOut: categories.includes("wickets") && !selectedExtra ? true : false,
-				dismissedByBowler:
-					categories.includes("wickets") && !selectedExtra
-						? currentBowler?.player?._id
-						: null,
-			},
-		};
+        if (type === "batting") {
+          const strikeRate =
+            batting.ballFaced > 0
+              ? ((batting.runs / batting.ballFaced) * 100).toFixed(2)
+              : 0;
+          return {
+            batsman: playerName,
+            runs: batting.runs,
+            balls: batting.ballFaced,
+            fours: batting.fours,
+            sixes: batting.sixes,
+            strikeRate: strikeRate,
+            id: player._id,
+            isOut: batting.isOut,
+          };
+        } else {
+          const [whole, balls] = (bowling.oversBowled || 0)
+            .toString()
+            .split(".")
+            .map(Number);
+          const actual = (whole || 0) + (balls || 0) / 6;
+          const economy = actual > 0 ? bowling.runGiven / actual : 0;
+          return {
+            bowler: playerName,
+            overs: bowling.oversBowled,
+            maidens: bowling.maidens || 0,
+            runs: bowling.runGiven,
+            wickets: bowling.wickets,
+            economy: economy.toFixed(2),
+            id: player._id,
+          };
+        }
+      })
+      .filter(Boolean);
+  };
 
-		let oversBowled = currentBowler?.bowling?.oversBowled ?? 0;
-		let overEnd = false;
-		let overPlayed = match.overPlayed ?? 0;
-		if (!selectedExtra) {
-			const [wholeOvers, balls] = oversBowled.toFixed(1).split(".").map(Number);
-			setCurrentBall(balls + 1);
+  const handleActionClick = async (item, type) => {
+    if (type === "action") {
+      if (item.name === "swap") {
+        if (!nonStriker) {
+          notification.warning({ message: "No non-striker available" });
+          return;
+        }
+        const payload = { ...match, currentBatter: nonStriker };
+        const data = await updateMatch(id, payload);
+        setMatch(data);
+        notification.success({ message: "Strike Swapped" });
+        return;
+      }
+      setSelectedAction(selectedAction === item ? null : item);
+    } else if (type === "extra") {
+      setSelectedExtra(selectedExtra === item ? null : item);
+    } else if (type === "match_control") {
+      if (item.name === "end_match") {
+        if (window.confirm("Are you sure you want to end this match?")) {
+          const payload = { ...match, matchStatus: "Completed" };
+          const data = await updateMatch(id, payload);
+          setMatch(data);
+          notification.info({ message: "Match Finalized" });
+        }
+      } else if (item.name === "end_innings") {
+        if (window.confirm("End current innings?")) {
+          const teamBatIdx = match.teams.findIndex(
+            (t) => t._id === match.currentTeamBatting,
+          );
+          const teamBowlIdx = match.teams.findIndex(
+            (t) => t._id === match.currentTeamBowling,
+          );
+          const payload = {
+            ...match,
+            currentTeamBatting: match.teams[teamBowlIdx]._id,
+            currentTeamBowling: match.teams[teamBatIdx]._id,
+            currentInnings: match.currentInnings + 1,
+            overPlayed: 0,
+            currentBatter: null,
+            currentBowler: null,
+            recentBalls: [],
+            targetScore:
+              match.currentInnings === 1
+                ? match.teams[teamBatIdx].totalScore + 1
+                : match.targetScore,
+          };
+          const data = await updateMatch(id, payload);
+          setMatch(data);
+          notification.success({ message: "Next Innings Started" });
+        }
+      }
+    }
+  };
 
-			if (balls === 5) {
-				oversBowled = (wholeOvers + 1).toFixed(1);
-			} else {
-				oversBowled = `${wholeOvers}.${balls + 1}`;
-			}
+  const handleBallActionSubmit = async (wicketType) => {
+    if (!currentBatter || !currentBowler) return;
 
-			const [wholeOvers1, balls1] = overPlayed.toFixed(1).split(".").map(Number);
-			setCurrentBall(balls1 + 1);
+    const mainPayload = JSON.parse(JSON.stringify(match));
+    const runAction = selectedAction?.value ?? 0;
+    const runExtra = selectedExtra?.value ?? 0;
+    const totalRunsThisBall = runAction + runExtra;
 
-			if (balls1 === 5) {
-				overPlayed = (wholeOvers1 + 1).toFixed(1);
-				overEnd = true;
-			} else {
-				overPlayed = `${wholeOvers1}.${balls1 + 1}`;
-			}
+    const isWicket = selectedAction?.name === "W";
+    const isBoundary = [4, 6].includes(runAction);
+    const isLegalBall = !["Wide", "NoBall"].includes(selectedExtra?.type);
 
-			mainPayload.overPlayed = parseFloat(overPlayed);
-		}
+    // 1. Update Batsman
+    const batsmanPayload = { ...currentBatter };
+    if (!["Wide"].includes(selectedExtra?.type)) {
+      batsmanPayload.batting.runs += runAction;
+      batsmanPayload.batting.ballFaced += isLegalBall ? 1 : 0;
+      if (runAction === 4) batsmanPayload.batting.fours += 1;
+      if (runAction === 6) batsmanPayload.batting.sixes += 1;
+    }
+    if (isWicket) {
+      batsmanPayload.batting.isOut = true;
+      batsmanPayload.batting.dismissedByBowler = currentBowler.player._id;
+      batsmanPayload.batting.dismissedType = wicketType;
 
-		const bowlerPayload = {
-			...currentBowler,
-			bowling: {
-				...currentBowler.bowling,
-				runGiven: (currentBowler?.bowling?.runGiven ?? 0) + totalRunOnBall,
-				wickets: categories.includes("wickets")
-					? currentBowler?.bowling?.wickets + 1
-					: currentBowler?.bowling?.wickets,
-				extras: categories.includes("extras")
-					? currentBowler?.bowling?.extras + 1
-					: currentBowler?.bowling?.extras,
-				oversBowled,
-			},
-		};
+      // Update Fall of Wickets
+      const fowEntry = {
+        player: currentBatter.player._id,
+        score:
+          mainPayload.teams.find((t) => t._id === match.currentTeamBatting)
+            .totalScore + totalRunsThisBall,
+        wickets:
+          mainPayload.teams.find((t) => t._id === match.currentTeamBatting)
+            .totalWickets + 1,
+        over: matchOverPlayed,
+      };
+      mainPayload.fallOfWickets = [
+        ...(mainPayload.fallOfWickets || []),
+        fowEntry,
+      ];
+    }
 
-		const battingIndex = mainPayload.teams?.findIndex(
-			(team) => team._id === match.currentTeamBatting
-		);
-		const updatedBatsman = mainPayload.teams[battingIndex].playing11.findIndex(
-			(player) => player._id === batsmanPayload._id
-		);
+    // 2. Update Bowler
+    let bowOvers = currentBowler.bowling.oversBowled || 0;
+    let overEnded = false;
+    let matchOverPlayed = match.overPlayed || 0;
+    let runsInCurrentOver = (match.runsInOver || 0) + totalRunsThisBall;
 
-		const bowlerIndex = mainPayload.teams?.findIndex(
-			(team) => team._id === match.currentTeamBowling
-		);
-		const updatedBowler = mainPayload.teams[bowlerIndex].playing11.findIndex(
-			(player) => player._id === bowlerPayload._id
-		);
+    if (isLegalBall) {
+      const [o, b] = Number(bowOvers).toFixed(1).split(".").map(Number);
+      bowOvers = b === 5 ? o + 1 : parseFloat(`${o}.${b + 1}`);
 
-		const battingTeam = mainPayload.teams[battingIndex];
-		battingTeam.totalScore = (battingTeam?.totalScore ?? 0) + totalRunOnBall;
-		battingTeam.totalWickets = categories.includes("wickets")
-			? (battingTeam?.totalWickets ?? 0) + 1
-			: battingTeam?.totalWickets;
-		battingTeam.overs = parseFloat(overPlayed);
+      const [mo, mb] = Number(matchOverPlayed)
+        .toFixed(1)
+        .split(".")
+        .map(Number);
+      if (mb === 5) {
+        matchOverPlayed = mo + 1;
+        overEnded = true;
+      } else {
+        matchOverPlayed = parseFloat(`${mo}.${mb + 1}`);
+      }
+    }
 
-		battingTeam.playing11[updatedBatsman] = batsmanPayload;
-		mainPayload.teams[bowlerIndex].playing11[updatedBowler] = bowlerPayload;
-		mainPayload.currentBatter = categories.includes("wickets") ? null : batsmanPayload;
-		mainPayload.currentBowler = overEnd ? null : bowlerPayload;
-		mainPayload.prevBowler = overEnd ? bowlerPayload : null;
+    const bowlerPayload = { ...currentBowler };
+    bowlerPayload.bowling.runGiven += totalRunsThisBall;
+    bowlerPayload.bowling.wickets += isWicket ? 1 : 0;
+    bowlerPayload.bowling.oversBowled = Number(bowOvers.toFixed(1));
 
-		updateMatch(id, mainPayload)
-			.then((data) => {
-				setMatch(data);
-				setSelectedAction(null);
-				setSelectedExtra(null);
-			})
-			.catch((error) => {
-				notification.error({
-					message: "Error",
-					description: error.message,
-				});
-			});
-	};
+    if (overEnded) {
+      if (runsInCurrentOver === 0) {
+        bowlerPayload.bowling.maidens =
+          (bowlerPayload.bowling.maidens || 0) + 1;
+      }
+      mainPayload.runsInOver = 0;
+    } else {
+      mainPayload.runsInOver = runsInCurrentOver;
+    }
 
-	const handleBatterAdding = (value) => {
-		const batsman = JSON.parse(value);
-		batsman.hasBatted = true;
-		batsman.battingPosition = playerBatted.length;
-		if (battingPairs.length === 2) {
-			notification.error({
-				message: "Active Pair limit exceeded!",
-				description: "Only 2 player can be batted at a time!",
-			});
-			return;
-		}
-		const payload = match;
-		const index = payload.teams?.findIndex((team) => team._id === match.currentTeamBatting);
-		const updatedBatsman = payload.teams[index].playing11.findIndex(
-			(player) => player._id === batsman._id
-		);
+    // 3. Update Teams & Match State
+    const batIdx = mainPayload.teams.findIndex(
+      (t) => t._id === match.currentTeamBatting,
+    );
+    const bowlIdx = mainPayload.teams.findIndex(
+      (t) => t._id === match.currentTeamBowling,
+    );
 
-		payload.teams[index].playing11[updatedBatsman].hasBatted = true;
-		payload.teams[index].playing11[updatedBatsman].battingPosition = playerBatted.length;
+    const pBatIdx = mainPayload.teams[batIdx].playing11.findIndex(
+      (p) => p._id === currentBatter._id,
+    );
+    const pBowlIdx = mainPayload.teams[bowlIdx].playing11.findIndex(
+      (p) => p._id === currentBowler._id,
+    );
 
-		updateMatch(id, payload)
-			.then((data) => {
-				setMatch(data);
-			})
-			.catch((error) => {
-				notification.error({
-					message: "Error",
-					description: error.message,
-				});
-			});
-	};
+    mainPayload.teams[batIdx].totalScore += totalRunsThisBall;
+    mainPayload.teams[batIdx].totalWickets += isWicket ? 1 : 0;
+    mainPayload.teams[batIdx].overs = matchOverPlayed;
+    mainPayload.teams[batIdx].playing11[pBatIdx] = batsmanPayload;
+    mainPayload.teams[bowlIdx].playing11[pBowlIdx] = bowlerPayload;
+    mainPayload.overPlayed = matchOverPlayed;
 
-	const handleBowlerAdding = (value) => {
-		const bowler = JSON.parse(value);
-		bowler.hasBowled = true;
+    // Ball String for timeline
+    let ballStr = isWicket ? "W" : totalRunsThisBall.toString();
+    if (selectedExtra?.type === "Wide")
+      ballStr = (runAction > 0 ? runAction + 1 : "") + "wd";
+    if (selectedExtra?.type === "NoBall")
+      ballStr = (runAction > 0 ? runAction + 1 : "") + "nb";
 
-		const payload = match;
-		const index = payload.teams?.findIndex((team) => team._id === match.currentTeamBowling);
-		const updatedBowler = payload.teams[index].playing11.findIndex(
-			(player) => player._id === bowler._id
-		);
+    mainPayload.recentBalls = [
+      ballStr,
+      ...(mainPayload.recentBalls || []),
+    ].slice(0, 12);
 
-		payload.teams[index].playing11[updatedBowler].hasBowled = true;
-		payload.currentBowler = bowler;
+    // Commentary
+    const desc = `${currentBowler.player.name} to ${currentBatter.player.name}, ${
+      isWicket
+        ? `OUT! ${wicketType ? wicketType.toUpperCase() + "!" : ""} What a delivery!`
+        : isBoundary
+          ? `FOUR! ${runAction === 6 ? "SIX!" : "CRACKING SHOT!"}`
+          : totalRunsThisBall === 0
+            ? "No run."
+            : `${totalRunsThisBall === 1 ? "Just a single." : totalRunsThisBall + " runs."}`
+    }`;
+    mainPayload.commentary = [
+      {
+        ball: matchOverPlayed.toFixed(1),
+        runs: totalRunsThisBall,
+        event: isWicket ? "wicket" : isBoundary ? "boundary" : "normal",
+        description: desc,
+      },
+      ...(mainPayload.commentary || []),
+    ].slice(0, 30);
 
-		updateMatch(id, payload)
-			.then((data) => {
-				setMatch(data);
-			})
-			.catch((error) => {
-				notification.error({
-					message: "Error",
-					description: error.message,
-				});
-			});
-	};
+    // Strike Rotation
+    let nextBatter = isWicket ? null : batsmanPayload;
+    if (!isWicket) {
+      let rotationCount = 0;
+      if (
+        runAction % 2 !== 0 &&
+        !["Wide", "NoBall"].includes(selectedExtra?.type)
+      )
+        rotationCount++;
+      if (overEnded) rotationCount++;
 
-	const transformData = (data, type) => {
-		return data
-			.map((player) => {
-				const { batting, bowling, player: playerInfo } = player;
+      if (rotationCount % 2 !== 0 && nonStriker) {
+        nextBatter = nonStriker;
+      }
+    }
 
-				// Common fields
-				const playerName = playerInfo.name;
+    mainPayload.currentBatter = nextBatter;
+    mainPayload.currentBowler = overEnded ? null : bowlerPayload;
+    if (overEnded) mainPayload.prevBowler = currentBowler.player._id;
 
-				if (type === "batting") {
-					const strikeRate =
-						batting.ballFaced > 0
-							? ((batting.runs / batting.ballFaced) * 100).toFixed(2)
-							: 0;
+    try {
+      const updated = await updateMatch(id, mainPayload);
+      setMatchHistory((prev) => [match, ...prev].slice(0, 5));
+      setMatch(updated);
+      setSelectedAction(null);
+      setSelectedExtra(null);
+      if (overEnded)
+        notification.info({
+          message: "Over Finished",
+          description: `End of over ${matchOverPlayed}. Please select a new bowler.`,
+        });
+      if (isWicket)
+        notification.warning({
+          message: "Wicket!",
+          description: "Select a new batsman to continue.",
+        });
+    } catch (e) {
+      notification.error({ message: "Update Failed", description: e.message });
+    }
+  };
 
-					return {
-						batsman: playerName,
-						runs: batting.runs,
-						balls: batting.ballFaced,
-						fours: batting.fours,
-						sixes: batting.sixes,
-						strikeRate: strikeRate,
-						id: player._id,
-						isOut: batting.isOut,
-						dismissedBy: batting?.dismissedByBowler?.name,
-					};
-				} else if (type === "bowling") {
-					const oversBowled = bowling.oversBowled > 0 ? bowling.oversBowled : 1;
-					const economy = bowling.runGiven / oversBowled;
+  const handleUndo = async () => {
+    if (matchHistory.length === 0) {
+      notification.warning({ message: "No history to undo" });
+      return;
+    }
+    const previousState = matchHistory[0];
+    try {
+      const updated = await updateMatch(id, previousState);
+      setMatch(updated);
+      setMatchHistory((prev) => prev.slice(1));
+      notification.success({ message: "Action Undone" });
+    } catch (e) {
+      notification.error({ message: "Undo Failed", description: e.message });
+    }
+  };
 
-					return {
-						bowler: playerName,
-						overs: bowling.oversBowled,
-						maidens: Math.floor(bowling.oversBowled / 6),
-						runs: bowling.runGiven,
-						wickets: bowling.wickets,
-						economy: economy.toFixed(2),
-						id: player._id,
-					};
-				}
+  const handleMOTM = async (playerId) => {
+    try {
+      const updated = await updateMatch(id, {
+        ...match,
+        playerOfTheMatch: playerId,
+      });
+      setMatch(updated);
+      notification.success({ message: "Player of the Match Set" });
+    } catch (e) {
+      notification.error({
+        message: "Failed to set MOTM",
+        description: e.message,
+      });
+    }
+  };
 
-				return null; // In case of an unknown type
-			})
-			.filter((item) => item !== null); // Remove null values
-	};
+  const handleTossDecisionClick = () => {
+    const teams = match.teams;
+    const secondTeam = teams.find((team) => team._id !== tossWinner);
+    const tossPayLoad = {
+      tossWinner: tossWinner,
+      tossDecision: tossDecision,
+      currentTeamBatting:
+        tossDecision === "Batting" ? tossWinner : secondTeam?._id,
+      currentTeamBowling:
+        tossDecision === "Batting" ? secondTeam?._id : tossWinner,
+      matchStatus: "Ongoing",
+    };
+    updateMatch(id, tossPayLoad).then(setMatch);
+  };
 
-	const handleCurrentBatter = (value) => {
-		const batter = JSON.parse(value);
-		const payload = {
-			...match,
-			currentBatter: batter,
-		};
+  const handleBatterAdding = (value) => {
+    const batsman = JSON.parse(value);
+    const payload = JSON.parse(JSON.stringify(match));
+    const index = payload.teams.findIndex(
+      (t) => t._id === match.currentTeamBatting,
+    );
+    const pIdx = payload.teams[index].playing11.findIndex(
+      (p) => p._id === batsman._id,
+    );
+    payload.teams[index].playing11[pIdx].hasBatted = true;
+    updateMatch(id, payload).then(setMatch);
+  };
 
-		updateMatch(id, payload)
-			.then((data) => {
-				setMatch(data);
-			})
-			.catch((error) => {
-				notification.error({
-					message: "Error",
-					description: error.message,
-				});
-			});
-	};
+  const handleBowlerAdding = (value) => {
+    const blr = JSON.parse(value);
+    const payload = JSON.parse(JSON.stringify(match));
+    const index = payload.teams.findIndex(
+      (t) => t._id === match.currentTeamBowling,
+    );
+    const pIdx = payload.teams[index].playing11.findIndex(
+      (p) => p._id === blr._id,
+    );
+    payload.teams[index].playing11[pIdx].hasBowled = true;
+    payload.currentBowler = payload.teams[index].playing11[pIdx];
+    updateMatch(id, payload).then(setMatch);
+  };
 
-	return (
-		<div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-			<Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
-				Live Match Update
-			</Title>
-			<div className="bg-gray-900 text-white p-4  bottom-0 z-10 left-0 right-0">
-				<div className="flex justify-between items-center">
-					<div className="flex items-center">
-						<p className="text-lg font-bold mr-4">Current Over: {overs}</p>
-						<p className="text-lg font-bold mr-4">Total Overs: {match?.totalOvers}</p>
-					</div>
-					<div className="flex items-center">
-						<p className="text-2xl font-bold">
-							{totalRuns} / {wickets}
-						</p>
-						<span className="text-md ml-2">Scoreboard</span>
-					</div>
-				</div>
-			</div>
+  const handleCurrentBatter = (value) => {
+    const btr = JSON.parse(value);
+    updateMatch(id, { ...match, currentBatter: btr }).then(setMatch);
+  };
 
-			{match?.tossWinner ? (
-				<>
-					<div style={{ margin: "20px" }}>
-						<Title className="flex justify-center" level={4}>
-							Balls
-						</Title>
-						<Steps current={currentBall}>
-							{[...Array(6)].map((_, index) => (
-								<Step key={index} />
-							))}
-						</Steps>
-					</div>
+  return (
+    <div className="min-h-screen bg-zinc-50 p-6 md:p-12 font-sans">
+      <div className="max-w-7xl mx-auto">
+        <MatchHeader
+          match={match}
+          totalRuns={totalRuns}
+          wickets={wickets}
+          overs={overs}
+        />
 
-					<Row gutter={24} style={{ marginTop: "20px", display: "flex" }}>
-						<Col span={12}>
-							<p className="mb-3">Current Bowler</p>
-							<Select
-								placeholder="Select Bowler"
-								style={{ width: "100%" }}
-								value={currentBowler ? JSON.stringify(currentBowler) : ""}
-								onChange={(value) => handleBowlerAdding(value)}
-							>
-								{bowlingPlayingXI?.map((p) => (
-									<Select.Option
-										disabled={match?.prevBowler === p._id}
-										key={p.player.name}
-										value={JSON.stringify(p)}
-									>
-										{p.player.name}
-									</Select.Option>
-								))}
-							</Select>
-						</Col>
-						<Col span={12}>
-							<p className="mb-3">Current Striker</p>
-							<Select
-								disabled={battingPairs.length < 2}
-								placeholder="Select Striker"
-								style={{ width: "100%" }}
-								value={currentBatter ? JSON.stringify(currentBatter) : ""}
-								onChange={(value) => handleCurrentBatter(value)}
-							>
-								{battingPairs?.map((p) => (
-									<Select.Option key={p.player.name} value={JSON.stringify(p)}>
-										{p.player.name}
-									</Select.Option>
-								))}
-							</Select>
-						</Col>
-					</Row>
+        {/* Dynamic Partnership Indicator */}
+        {match.currentBatter && battingPairs.length > 1 && (
+          <div className="mb-8 animate-slide-up">
+            <div className="bg-white px-4 md:px-8 py-4 rounded-2xl md:rounded-[2rem] border border-zinc-100 flex flex-col md:flex-row items-start md:items-center justify-between shadow-sm gap-4 md:gap-0">
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-3">
+                  {battingPairs.map((p, i) => (
+                    <div
+                      key={i}
+                      className={`w-8 h-8 md:w-10 md:h-10 rounded-full border-4 border-white flex items-center justify-center font-black text-[10px] md:text-xs ${p._id === currentBatter?._id ? "bg-orange-500 text-black" : "bg-zinc-100 text-zinc-400"}`}
+                    >
+                      {p.player?.name?.[0]}
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <span className="text-[9px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest block">
+                    Current Partnership
+                  </span>
+                  <span className="font-black text-xs md:text-sm text-zinc-900 uppercase">
+                    {battingPairs[0]?.player?.name} &{" "}
+                    {battingPairs[1]?.player?.name || "---"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-6 md:gap-8 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-zinc-50 pt-3 md:pt-0">
+                <div className="text-center md:text-left flex-1 md:flex-none">
+                  <span className="text-[9px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">
+                    Runs
+                  </span>
+                  <span className="text-lg md:text-xl font-black tabular-nums">
+                    {battingPairs.reduce(
+                      (acc, p) => acc + (p.batting?.runs || 0),
+                      0,
+                    )}
+                  </span>
+                </div>
+                <div className="text-center md:text-left flex-1 md:flex-none">
+                  <span className="text-[9px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-1">
+                    Balls
+                  </span>
+                  <span className="text-lg md:text-xl font-black tabular-nums text-zinc-400">
+                    {battingPairs.reduce(
+                      (acc, p) => acc + (p.batting?.ballFaced || 0),
+                      0,
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-					<Row gutter={24} className="flex flex-col items-center gap-4">
-						<div
-							style={{
-								marginTop: "20px",
-								display: "flex",
-								justifyContent: "center",
-								gap: "20px",
-								alignItems: "center",
-							}}
-						>
-							<div className="">
-								<p className="mb-3">Ball Action</p>
-								{ballActions.map((action, index) => (
-									<Button
-										key={index}
-										disabled={!currentBowler?.player || !currentBatter?.player}
-										type={selectedAction === action ? "primary" : "default"}
-										onClick={() => handleActionClick(action, "action")}
-									>
-										{action.name}
-									</Button>
-								))}
-							</div>
+        {/* Match Completed - MOTM Selection */}
+        {match.matchStatus === "Completed" && (
+          <div className="mb-10 animate-slide-up">
+            <Alert
+              message="Match Completed!"
+              description={
+                <div className="mt-4 space-y-4">
+                  <p className="font-bold text-zinc-900 uppercase tracking-tight">
+                    Select Player of the Match
+                  </p>
+                  <div className="flex gap-4">
+                    <Select
+                      className="w-72 h-12"
+                      placeholder="Select Player"
+                      onChange={handleMOTM}
+                      value={match.playerOfTheMatch}
+                    >
+                      {match.teams
+                        .flatMap((t) => t.playing11)
+                        .map((p) => (
+                          <Select.Option
+                            key={p.player._id}
+                            value={p.player._id}
+                          >
+                            {p.player.name}
+                          </Select.Option>
+                        ))}
+                    </Select>
+                    {match.playerOfTheMatch && (
+                      <div className="flex items-center gap-2 text-orange-500 font-black italic uppercase">
+                        <TrophyFilled /> Selected
+                      </div>
+                    )}
+                  </div>
+                </div>
+              }
+              type="success"
+              showIcon
+              style={{ borderRadius: "2rem", padding: "2rem" }}
+            />
+          </div>
+        )}
 
-							<div>
-								<p className="mb-3">Ball Type</p>
-								{ballExtras.map((extra, index) => (
-									<Button
-										key={index}
-										disabled={!currentBowler?.player || !currentBatter?.player}
-										type={selectedExtra === extra ? "primary" : "default"}
-										onClick={() => handleActionClick(extra, "extra")}
-									>
-										{extra.name}
-									</Button>
-								))}
-							</div>
-						</div>
+        {match?.tossWinner ? (
+          <Row gutter={[32, 32]}>
+            {/* Control Column */}
+            <Col xs={24} lg={16} className="space-y-6 md:space-y-8">
+              <BallActionPanel
+                currentBowler={currentBowler}
+                currentBatter={currentBatter}
+                bowlingPlayingXI={bowlingPlayingXI}
+                battingPairs={battingPairs}
+                prevBowler={match.prevBowler}
+                handleBowlerAdding={handleBowlerAdding}
+                handleCurrentBatter={handleCurrentBatter}
+                selectedAction={selectedAction}
+                selectedExtra={selectedExtra}
+                handleActionClick={handleActionClick}
+                handleBallActionSubmit={handleBallActionSubmit}
+                handleUndo={handleUndo}
+                overs={overs}
+              />
 
-						<Button
-							disabled={!selectedAction && !selectedExtra}
-							type="primary"
-							onClick={handleBallActionSubmit}
-						>
-							Submit Ball Action
-						</Button>
-					</Row>
+              <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-md border border-zinc-100 overflow-hidden">
+                <div className="p-4 md:p-8 border-b border-zinc-50 flex flex-col md:flex-row justify-between items-start md:items-center bg-zinc-50/50 gap-4">
+                  <h3 className="text-lg md:text-xl font-black uppercase tracking-tight italic">
+                    Batting Log
+                  </h3>
+                  <Select
+                    className="w-full md:w-56"
+                    placeholder="+ New Batsman"
+                    disabled={battingPairs.length === 2}
+                    onChange={handleBatterAdding}
+                  >
+                    {battingPlayingXI?.map((b) => (
+                      <Select.Option
+                        key={b._id}
+                        value={JSON.stringify(b)}
+                        disabled={b.hasBatted}
+                      >
+                        {b.player.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="overflow-x-auto">
+                  <StatsTable
+                    type="batting"
+                    data={transformData(playerBatted, "batting")}
+                    currentId={currentBatter?._id}
+                  />
+                </div>
+              </div>
+            </Col>
 
-					<Title level={4} style={{ marginTop: "40px" }} className="flex justify-between">
-						Batting Summary
-						<div className="flex items-center gap-3 justify-center">
-							<p className="flex items-center !m-0">Add Batsman</p>
-							<Select
-								className="!w-[200px]"
-								placeholder="Add batsman"
-								disabled={battingPairs.length === 2}
-								onChange={(value) => handleBatterAdding(value)}
-							>
-								{battingPlayingXI?.map((b) => (
-									<Select.Option
-										key={b._id}
-										value={JSON.stringify(b)}
-										disabled={b.hasBatted}
-									>
-										{b.player.name}
-									</Select.Option>
-								))}
-							</Select>
-						</div>
-					</Title>
+            {/* Side Column */}
+            <Col xs={24} lg={8} className="space-y-6 md:space-y-8">
+              {/* Recent Balls Grid */}
+              <div className="bg-zinc-900 text-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl">
+                <h3 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-4 md:mb-6 text-zinc-500 italic">
+                  This Over
+                </h3>
+                <div className="grid grid-cols-6 gap-2 md:gap-3">
+                  {(match.recentBalls || [])
+                    .slice(0, 6)
+                    .reverse()
+                    .map((ball, i) => (
+                      <div
+                        key={i}
+                        className={`aspect-square rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm shadow-xl transition-transform hover:scale-110 ${
+                          ball === "W"
+                            ? "bg-red-600"
+                            : ["4", "6"].includes(ball)
+                              ? "bg-orange-500 text-black"
+                              : "bg-zinc-800 text-zinc-400 border border-white/5"
+                        }`}
+                      >
+                        {ball}
+                      </div>
+                    ))}
+                  {Array.from({
+                    length: Math.max(0, 6 - (match.recentBalls?.length || 0)),
+                  }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="aspect-square rounded-xl md:rounded-2xl border-2 border-dashed border-zinc-800 flex items-center justify-center opacity-20"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-					<Table
-						dataSource={transformData(playerBatted, "batting")}
-						pagination={false}
-						rowKey={"id"}
-						columns={[
-							{
-								title: "Batter",
-								dataIndex: "batsman",
-								key: "batsman",
-								render: (text, record) => (
-									<span
-										className={` ${
-											record?.id === currentBatter?._id && "font-bold"
-										}`}
-									>
-										{text.split(" ")[0]}
-										{record?.id === currentBatter?._id ? "*" : ""}
-										{record?.isOut && (
-											<span className="text-red-500 text-xs ml-2">
-												out by {record?.dismissedBy}
-											</span>
-										)}
-									</span>
-								),
-							},
-							{
-								title: "R",
-								dataIndex: "runs",
-								key: "runs",
-							},
-							{
-								title: "B",
-								dataIndex: "balls",
-								key: "balls",
-							},
-							{
-								title: "4s",
-								dataIndex: "fours",
-								key: "fours",
-							},
-							{
-								title: "6s",
-								dataIndex: "sixes",
-								key: "sixes",
-							},
-							{
-								title: "SR",
-								dataIndex: "strikeRate",
-								key: "strikeRate",
-								render: (strikeRate) => <span>{`${strikeRate}%`}</span>,
-							},
-						]}
-						style={{ marginTop: "20px" }}
-					/>
-					<Title level={4} style={{ marginTop: "40px" }} className="flex justify-between">
-						Bowling Summary
-					</Title>
-					<Table
-						dataSource={transformData(bowler, "bowling")}
-						pagination={false}
-						rowKey={"id"}
-						columns={[
-							{
-								title: "Bowler",
-								dataIndex: "bowler",
-								key: "bowler",
-								render: (text, record) => (
-									<span
-										className={`${
-											record?.id === currentBowler?._id && "font-bold"
-										}`}
-									>
-										{text.split(" ")[0]}{" "}
-										{record?.id === currentBowler?._id ? "*" : ""}{" "}
-									</span>
-								),
-							},
-							{
-								title: "O",
-								dataIndex: "overs",
-								key: "overs",
-							},
-							{
-								title: "M",
-								dataIndex: "maidens",
-								key: "maidens",
-							},
-							{
-								title: "R",
-								dataIndex: "runs",
-								key: "runs",
-							},
-							{
-								title: "W",
-								dataIndex: "wickets",
-								key: "wickets",
-							},
-							{
-								title: "ECO",
-								dataIndex: "economy",
-								key: "economy",
-								render: (economy) => <span>{`${economy}%`}</span>,
-							},
-						]}
-						style={{ marginTop: "20px" }}
-					/>
-				</>
-			) : (
-				<>
-					<Alert message="Match not started yet" type="info" showIcon />
-					<Select
-						placeholder="Select team who have won the toss"
-						style={{ width: "100%" }}
-						className="mt-5"
-						onChange={(value) => setTossWinner(value)}
-					>
-						{match?.teams?.map((team) => (
-							<Select.Option key={team._id} value={team._id}>
-								{team.name}
-							</Select.Option>
-						))}
-					</Select>
-					{tossWinner && (
-						<Select
-							placeholder="Select what is elected by toss winner"
-							style={{ width: "100%", marginTop: "10px" }}
-							onChange={(value) => setTossDecision(value)}
-						>
-							<Select.Option value="Batting">Batting</Select.Option>
-							<Select.Option value="Bowling">Bowling</Select.Option>
-						</Select>
-					)}
+              {/* Bowling Stats Card */}
+              <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-md border border-zinc-100 overflow-hidden p-2">
+                <div className="p-4 md:p-6 border-b border-zinc-50 flex items-center gap-3">
+                  <div className="w-1.5 h-6 md:w-2 md:h-8 bg-orange-500 rounded-full" />
+                  <h3 className="text-lg md:text-xl font-black uppercase tracking-tight italic">
+                    Bowling Log
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <StatsTable
+                    type="bowling"
+                    data={transformData(bowler, "bowling")}
+                    currentId={currentBowler?._id}
+                  />
+                </div>
+              </div>
 
-					<Button
-						type="primary"
-						style={{ marginTop: "20px" }}
-						disabled={!tossDecision}
-						onClick={handleTossDecisionClick}
-					>
-						Go to Live Updates
-					</Button>
-				</>
-			)}
-		</div>
-	);
+              {/* Real-time Commentary Log */}
+              <div className="bg-zinc-100/80 backdrop-blur-sm p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-zinc-200">
+                <h3 className="text-[9px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6 text-zinc-400">
+                  Commentary Stream
+                </h3>
+                <div className="space-y-4 md:space-y-6 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar no-scrollbar">
+                  {(match.commentary || []).map((c, i) => (
+                    <div key={i} className="flex gap-3 md:gap-4 group">
+                      <div className="flex flex-col items-center">
+                        <span className="font-mono text-[9px] md:text-[10px] font-black text-zinc-900 bg-white w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-lg md:rounded-xl shadow-sm border border-zinc-200 group-hover:bg-orange-500 group-hover:text-black transition-colors">
+                          {c.ball}
+                        </span>
+                        {i !== match.commentary.length - 1 && (
+                          <div className="w-px flex-1 bg-zinc-300 my-2" />
+                        )}
+                      </div>
+                      <div className="flex-1 pt-1 pb-4">
+                        <p className="text-[11px] md:text-xs leading-relaxed text-zinc-600 font-bold group-hover:text-zinc-900 transition-colors">
+                          {c.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Col>
+          </Row>
+        ) : (
+          <div className="max-w-2xl mx-auto bg-white p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl border border-zinc-100 text-center animate-slide-up">
+            <div className="w-16 h-16 md:w-24 md:h-24 bg-orange-100 text-orange-600 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-10 shadow-inner rotate-3">
+              <span className="text-3xl md:text-5xl">🏏</span>
+            </div>
+            <h2 className="text-2xl md:text-4xl font-black text-zinc-900 mb-4 tracking-tighter uppercase italic">
+              Kickoff <span className="text-orange-500">Match</span>
+            </h2>
+            <p className="text-zinc-500 mb-8 md:mb-12 font-bold text-base md:text-lg max-w-sm mx-auto leading-tight">
+              Configure the toss results to initialize the live broadcast
+              stream.
+            </p>
+
+            <div className="space-y-6 md:space-y-8 text-left">
+              <div className="space-y-3">
+                <label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest block pl-1">
+                  Who Won the Toss?
+                </label>
+                <Select
+                  placeholder="Select Winning Team"
+                  className="w-full h-12 md:h-16 custom-select-lg"
+                  onChange={setTossWinner}
+                >
+                  {match?.teams?.map((team) => (
+                    <Select.Option key={team._id} value={team._id}>
+                      {team.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+
+              {tossWinner && (
+                <div className="animate-slide-up space-y-3">
+                  <label className="text-zinc-400 text-[10px] font-black uppercase tracking-widest block pl-1">
+                    Decision
+                  </label>
+                  <Select
+                    placeholder="Decided to choose..."
+                    className="w-full h-12 md:h-16"
+                    onChange={setTossDecision}
+                  >
+                    <Select.Option value="Batting">Batting</Select.Option>
+                    <Select.Option value="Bowling">Bowling</Select.Option>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <Button
+              className="w-full h-16 md:h-20 bg-zinc-900 text-white font-black text-lg md:text-xl rounded-2xl border-none hover:!bg-black mt-8 md:mt-14 transition-all shadow-2xl shadow-zinc-900/40 uppercase tracking-widest"
+              disabled={!tossDecision}
+              onClick={handleTossDecisionClick}
+            >
+              Start Live Broadcast
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default LiveMatchUpdate;

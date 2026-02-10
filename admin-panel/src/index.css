@@ -1,23 +1,157 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* src/index.css or your custom CSS file */
-
-body {
-	background: #f4f7fe !important;
-}
 
 :root {
-	--primary-color: #4f46e5;
-	--secondary-color: #10b981;
-	--danger-color: #ef4444;
-	--success-color: #22c55e;
-	--warning-color: #f59e0b;
-	--info-color: #3b82f6;
-	--light-color: #f9fafb;
-	--dark-color: #1f2937;
+  --primary-color: #4f46e5;
+  --secondary-color: #10b981;
+  --danger-color: #ef4444;
+  --success-color: #22c55e;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+  --light-color: #f9fafb;
+  --dark-color: #1f2937;
+  --orange-500: #f97316;
 }
 
-.step-content {
-	transition: opacity 0.3s ease-in-out;
+body {
+  background: #f8fafc !important;
+  color: #0f172a;
+  font-family: "Outfit", "Inter", sans-serif;
+}
+
+/* Ant Design Customizations */
+.ant-table-wrapper .ant-table {
+  background: transparent !important;
+}
+
+.ant-table-thead > tr > th {
+  background: transparent !important;
+  color: #94a3b8 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f8fafc !important;
+  padding: 16px 12px !important;
+}
+
+.ant-select-selector {
+  border-radius: 12px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #fff !important;
+}
+
+.ant-select-selection-item {
+  line-height: 46px !important;
+  font-weight: 700 !important;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom Admin Table Styling */
+.custom-admin-table .ant-table-thead > tr > th {
+  padding: 12px 16px !important;
+  font-size: 9px !important;
+  color: #a1a1aa !important;
+  white-space: nowrap;
+}
+
+.custom-admin-table .ant-table-tbody > tr > td {
+  padding: 12px 16px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid #f4f4f5 !important;
+}
+
+.custom-admin-table .ant-table-tbody > tr:hover > td {
+  background: #fafafa !important;
+}
+
+/* Tabular numbers for better alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+  .ant-table-thead > tr > th {
+    padding: 8px 12px !important;
+  }
+  .ant-table-tbody > tr > td {
+    padding: 12px 12px !important;
+  }
+  .ant-card-body {
+    padding: 16px !important;
+  }
+}
+
+/* Custom Select Improvements */
+.custom-select-lg .ant-select-selector {
+  height: 64px !important;
+  font-size: 1.125rem !important;
+  border-radius: 1rem !important;
+}
+
+.custom-select-lg .ant-select-selection-item {
+  line-height: 62px !important;
+}
+
+/* Helper Classes */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -1,32 +1,103 @@
 export const MatchStatus = Object.freeze({
-	Scheduled: "Scheduled",
-	Ongoing: "Ongoing",
-	Completed: "Completed",
-	Abandoned: "Abandoned",
-	Postponed: "Postponed",
-	Cancelled: "Cancelled",
-	Delayed: "Delayed",
-	Drawn: "Drawn",
+  Scheduled: "Scheduled",
+  Ongoing: "Ongoing",
+  Completed: "Completed",
+  Abandoned: "Abandoned",
+  Postponed: "Postponed",
+  Cancelled: "Cancelled",
+  Delayed: "Delayed",
+  Drawn: "Drawn",
 });
 
 export const PlayerRole = Object.freeze({
-	Batter: "Batter",
-	Bowler: "Bowler",
-	Wicketkeeper: "Wicketkeeper",
-	AllRounder: "All-rounder",
+  Batter: "Batter",
+  Bowler: "Bowler",
+  Wicketkeeper: "Wicketkeeper",
+  AllRounder: "All-rounder",
 });
 
 export const ballActions = [
-	{ name: "4", value: 4, ballType: "legal", category: ["runs", "fours, ballFaced"] },
-	{ name: "1", value: 1, ballType: "legal", category: ["runs", "singles, ballFaced"] },
-	{ name: "6", value: 6, ballType: "legal", category: ["runs", "sixes, ballFaced"] },
-	{ name: "2", value: 2, ballType: "legal", category: ["runs", "twos, ballFaced"] },
-	{ name: "3", value: 3, ballType: "legal", category: ["runs", "threes, ballFaced"] },
-	{ name: "Dot Ball", value: 0, ballType: "legal", category: ["dots, ballFaced"] },
-	{ name: "Wicket", value: 0, ballType: "legal", category: ["wickets, ballFaced"] },
+  {
+    name: "0",
+    value: 0,
+    category: ["dots", "ballFaced"],
+    description: "Dot Ball",
+  },
+  {
+    name: "1",
+    value: 1,
+    category: ["runs", "singles", "ballFaced"],
+    description: "Single",
+  },
+  {
+    name: "2",
+    value: 2,
+    category: ["runs", "twos", "ballFaced"],
+    description: "Double",
+  },
+  {
+    name: "3",
+    value: 3,
+    category: ["runs", "threes", "ballFaced"],
+    description: "Triple",
+  },
+  {
+    name: "4",
+    value: 4,
+    category: ["runs", "fours", "ballFaced"],
+    description: "Boundary Four",
+  },
+  {
+    name: "6",
+    value: 6,
+    category: ["runs", "sixes", "ballFaced"],
+    description: "Boundary Six",
+  },
+  {
+    name: "W",
+    value: 0,
+    category: ["wickets", "ballFaced"],
+    description: "Wicket",
+  },
 ];
 
 export const ballExtras = [
-	{ name: "No Ball", value: 1, ballType: "not-legal", category: ["extras"] },
-	{ name: "Wide", value: 1, ballType: "not-legal", category: ["extras"] },
+  {
+    name: "Wd",
+    value: 1,
+    type: "Wide",
+    category: ["extras"],
+    description: "Wide Ball",
+  },
+  {
+    name: "Nb",
+    value: 1,
+    type: "NoBall",
+    category: ["extras"],
+    description: "No Ball",
+  },
+  {
+    name: "Lb",
+    value: 0,
+    type: "LegBye",
+    category: ["extras", "ballFaced"],
+    description: "Leg Bye",
+  },
+  {
+    name: "By",
+    value: 0,
+    type: "Bye",
+    category: ["extras", "ballFaced"],
+    description: "Bye",
+  },
+];
+
+export const wicketTypes = [
+  "Bowled",
+  "Caught",
+  "LBW",
+  "Run Out",
+  "Stumped",
+  "Hit Wicket",
+  "Retired Hurt",
 ];

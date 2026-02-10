@@ -2,11 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-/* In your global CSS or Tailwind config */
+:root {
+  --primary-color: #fca311;
+  --secondary-color: #14213d;
+  --accent-color: #e5e5e5;
+  --bg-dark: #000000;
+  --card-bg: #111111;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .premium-card {
+    @apply bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-zinc-700 hover:shadow-2xl hover:shadow-orange-500/10 hover:-translate-y-1;
+  }
+
+  .glass-effect {
+    @apply bg-black/40 backdrop-blur-md border border-white/10;
+  }
+
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
+  }
+
+  .status-live {
+    @apply bg-red-600 text-white animate-pulse;
+  }
+
+  .status-upcoming {
+    @apply bg-blue-600 text-white;
+  }
+
+  .status-completed {
+    @apply bg-zinc-700 text-zinc-300;
+  }
+}
+
 .bg-hero {
-	background-image: url("https://example.com/your-cricket-background-image.jpg");
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=2067&auto=format&fit=crop");
+  background-size: cover;
+  background-position: center;
 }
 
 .scoreboard {
-	background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.8));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.95));
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+.bg-grid-white {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.05)'%3E%3Cpath d='M0 .5H31.5V32'/%3E%3C/svg%3E");
+}
+
+/* Custom Scrollbar Utility */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 120, 0, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 120, 0, 0.4);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

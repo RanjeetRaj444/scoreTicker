@@ -1,94 +1,90 @@
 import React from "react";
 
 const Scoreboard = ({
-	scoreData,
-	overs,
-	totalRuns,
-	wickets,
-	currentBattingTeam,
-	currentBowlingTeam,
-	battingPairs,
+  scoreData,
+  overs,
+  totalRuns,
+  wickets,
+  currentBattingTeam,
+  currentBowlingTeam,
+  battingPairs,
 }) => {
-	return (
-		<div className="relative bg-gray-900 text-white w-full py-2 shadow-lg rounded-lg">
-			<div className="flex justify-between items-center px-4">
-				{/* Left Team Section */}
-				<div className="flex items-center">
-					<img
-						src="/path-to-left-team-logo.png"
-						alt="Left Team Logo"
-						className="h-12 w-12"
-					/>
-					<div className="ml-2">
-						<h2 className="text-lg font-bold">{currentBattingTeam?.name}</h2>
-						<p className="text-sm">
-							{currentBattingTeam?.totalScore} - {currentBattingTeam?.totalWickets} (
-							{currentBattingTeam?.overs})
-						</p>
-					</div>
-				</div>
+  const currentBatter = scoreData?.currentBatter;
+  const partner = battingPairs?.find(
+    (p) => p.player?._id !== currentBatter?.player?._id,
+  );
 
-				{/* Middle Section - Players Info */}
-				<div className="flex flex-col text-center">
-					<div className="flex justify-between items-center mb-1">
-						<div className="flex items-center mr-4">
-							<span className="bg-yellow-600 px-2 py-1 text-xs font-bold mr-2 rounded-md">
-								B1
-							</span>
-							<p className="text-sm">
-								{battingPairs[0]?.player?.name}: {battingPairs[0]?.batting?.runs} (
-								{battingPairs[0]?.batting?.ballFaced})
-							</p>
-						</div>
-						<div className="flex items-center">
-							<span className="bg-yellow-600 px-2 py-1 text-xs font-bold mr-2 rounded-md">
-								B2
-							</span>
-							<p className="text-sm">
-								{battingPairs[1]?.player?.name}: {battingPairs[1]?.batting?.runs} (
-								{battingPairs[1]?.batting?.ballFaced})
-							</p>
-						</div>
-					</div>
-					<div className="text-sm flex items-center justify-center">
-						<span className="font-semibold mr-1">Bowler:</span>
-						<p className="mr-2">{scoreData?.currentBowler?.player?.name}</p>
-						<p className="mr-1">{scoreData?.currentBowler?.bowling?.oversBowled}</p>(
-						{scoreData?.currentBowler?.bowling?.runGiven} /
-						<p className="ml-1">{scoreData?.currentBowler?.bowling?.wickets}</p>)
-					</div>
-				</div>
+  return (
+    <div className="w-full select-none animate-slide-up">
+      <div className="glass-effect rounded-t-3xl border-x-0 border-b-0">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch">
+          {/* Left Section: Score Focus */}
+          <div className="bg-orange-500 text-black p-4 flex items-center justify-between gap-6 min-w-[300px] md:rounded-tl-2xl">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 opacity-70">
+                Batting
+              </span>
+              <h2 className="text-xl font-black truncate max-w-[150px] tracking-tighter">
+                {currentBattingTeam?.name}
+              </h2>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-black tabular-nums tracking-tighter">
+                {totalRuns}-{wickets}
+              </span>
+              <span className="text-sm font-bold opacity-80">({overs})</span>
+            </div>
+          </div>
 
-				{/* Right Team Section */}
-				<div className="flex items-center">
-					<div className="text-right mr-2">
-						<h2 className="text-lg font-bold">{currentBowlingTeam?.name}</h2>
-						{/* <p className="text-sm">10-0 (0.5)</p> */}
-					</div>
-					<img
-						src="/path-to-right-team-logo.png"
-						alt="Right Team Logo"
-						className="h-12 w-12"
-					/>
-				</div>
-			</div>
+          {/* Middle Section: Active Players */}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            {/* Batters */}
+            <div className="flex items-center gap-6 justify-center md:justify-start">
+              <div className="flex flex-col">
+                <span className="text-white text-sm font-black tracking-tight">
+                  {currentBatter?.player?.name}{" "}
+                  <span className="text-orange-500">*</span>
+                </span>
+                <span className="text-zinc-400 text-xs font-mono font-bold tracking-widest">
+                  {currentBatter?.batting?.runs}(
+                  {currentBatter?.batting?.ballFaced})
+                </span>
+              </div>
+              {partner && (
+                <div className="flex flex-col opacity-60">
+                  <span className="text-white text-sm font-bold tracking-tight">
+                    {partner?.player?.name}
+                  </span>
+                  <span className="text-zinc-400 text-xs font-mono font-bold tracking-widest">
+                    {partner?.batting?.runs}({partner?.batting?.ballFaced})
+                  </span>
+                </div>
+              )}
+            </div>
 
-			{/* <div className="flex justify-between items-center px-4 mt-2 border-t border-gray-700 pt-1">
-				<p className="text-sm">CRR: 12.3 | RRR: 10.5</p>
-				<div className="flex items-center">
-					<p className="text-sm mr-4">Projected: 112</p>
-
-					<div className="flex items-center space-x-1">
-						<div className="h-3 w-3 rounded-full bg-white"></div>
-						<div className="h-3 w-3 rounded-full bg-red-500"></div>
-						<div className="h-3 w-3 rounded-full bg-white"></div>
-						<div className="h-3 w-3 rounded-full bg-red-500"></div>
-						<div className="h-3 w-3 rounded-full bg-white"></div>
-					</div>
-				</div>
-			</div> */}
-		</div>
-	);
+            {/* Bowler & Last Balls */}
+            <div className="flex items-center justify-between md:justify-end gap-6">
+              <div className="flex flex-col items-end">
+                <span className="text-zinc-500 text-[10px] uppercase font-black tracking-widest mb-1">
+                  Bowling
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">
+                    {scoreData?.currentBowler?.player?.name}
+                  </span>
+                  <span className="bg-zinc-800 text-zinc-400 font-mono text-xs px-2 py-0.5 rounded border border-zinc-700">
+                    {scoreData?.currentBowler?.bowling?.wickets}-
+                    {scoreData?.currentBowler?.bowling?.runGiven} (
+                    {scoreData?.currentBowler?.bowling?.oversBowled})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Scoreboard;
