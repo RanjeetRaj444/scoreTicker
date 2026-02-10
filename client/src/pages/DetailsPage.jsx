@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import useMatch from "../hooks/useMatch";
 import { io } from "socket.io-client";
 import { SOCKET_SERVER_URL } from "./HomePage";
+import AdUnit from "../components/AdUnit";
 
 const { Title } = Typography;
 
@@ -88,6 +89,7 @@ const DetailsPage = () => {
             id: player._id,
             isOut: batting.isOut,
             dismissedBy: batting?.dismissedByBowler?.name,
+            dismissedType: batting?.dismissedType,
           };
         } else if (type === "bowling") {
           const [wholeOvers, balls] = (bowling.oversBowled || 0)
@@ -147,6 +149,14 @@ const DetailsPage = () => {
                 </span>
               </div>
             </div>
+
+            {match.matchStatus === "Innings Break" && (
+              <div className="bg-orange-500/10 border border-orange-500/20 px-6 py-2 rounded-2xl animate-pulse">
+                <span className="text-sm font-black text-orange-500 uppercase tracking-widest">
+                  Innings Break
+                </span>
+              </div>
+            )}
 
             {/* Recent Balls Timeline */}
             <div className="flex-1 max-w-md mx-auto hidden md:flex flex-col items-center">
@@ -242,7 +252,11 @@ const DetailsPage = () => {
                           </span>
                           {record?.isOut && (
                             <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">
-                              c & b {record.dismissedBy}
+                              {record.dismissedType === "Bowled"
+                                ? `b ${record.dismissedBy}`
+                                : record.dismissedType === "Caught"
+                                  ? `c fielder b ${record.dismissedBy}` // Fielder info not yet fully synced but this is a placeholder
+                                  : `${record.dismissedType} b ${record.dismissedBy}`}
                             </span>
                           )}
                         </div>
@@ -348,6 +362,8 @@ const DetailsPage = () => {
                 />
               </div>
             </section>
+
+            <AdUnit placement="ScorecardBottom" />
           </div>
         ) : activeTab === "commentary" ? (
           <div className="space-y-6 animate-slide-up max-w-2xl mx-auto">

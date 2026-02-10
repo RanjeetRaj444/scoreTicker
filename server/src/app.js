@@ -8,7 +8,8 @@ dotenv.config();
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+const corsOrigin = process.env.CORS_ORIGIN;
+const corsOrigin2 = process.env.CORS_ORIGIN2;
 console.log("-----------------------------------------");
 console.log("SERVER STARTUP DIAGNOSTICS");
 console.log("CWD:", process.cwd());
@@ -18,7 +19,7 @@ console.log("-----------------------------------------");
 
 app.use(
   cors({
-    origin: [corsOrigin, "http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: [corsOrigin, corsOrigin2],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
@@ -68,10 +69,14 @@ import playerRouter from "./routes/player.routes.js";
 import venuesRouter from "./routes/venue.routes.js";
 import matchRouter from "./routes/match.routes.js";
 import userRouter from "./routes/user.routes.js";
+import articleRouter from "./routes/article.routes.js";
+import adRouter from "./routes/ad.routes.js";
 
 app.use("/api/players", playerRouter);
 app.use("/api/venues", venuesRouter);
 app.use("/api/matches", matchRouter);
 app.use("/api/users", userRouter);
+app.use("/api/articles", articleRouter);
+app.use("/api/ads", adRouter);
 
 export { server, io };

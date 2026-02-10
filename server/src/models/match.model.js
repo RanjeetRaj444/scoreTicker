@@ -14,7 +14,9 @@ const matchLevels = [
 
 const matchStatuses = [
   "Scheduled",
+  "Toss Done",
   "Ongoing",
+  "Innings Break",
   "Completed",
   "Abandoned",
   "Postponed",

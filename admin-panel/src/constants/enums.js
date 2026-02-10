@@ -1,6 +1,8 @@
 export const MatchStatus = Object.freeze({
   Scheduled: "Scheduled",
+  TossDone: "Toss Done",
   Ongoing: "Ongoing",
+  InningsBreak: "Innings Break",
   Completed: "Completed",
   Abandoned: "Abandoned",
   Postponed: "Postponed",
@@ -95,9 +97,12 @@ export const ballExtras = [
 export const wicketTypes = [
   "Bowled",
   "Caught",
-  "LBW",
-  "Run Out",
+  "Run out",
   "Stumped",
-  "Hit Wicket",
-  "Retired Hurt",
+  "LBW",
+  "Hit wicket",
+  "Retired hurt",
+  "Timed out",
+  "Handled ball",
+  "Obstructing the field",
 ];

@@ -1,5 +1,6 @@
 import { io } from "../app.js";
 import { Match } from "../models/match.model.js";
+import { Ball } from "../models/ball.model.js";
 
 export const createMatch = async (req, res) => {
   try {
@@ -116,6 +117,45 @@ export const deleteMatch = async (req, res) => {
     res.status(200).json({
       success: true,
       data: match,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const recordBall = async (req, res) => {
+  try {
+    const { matchId, ballData, matchState } = req.body;
+
+    // 1. Save the ball event
+    const newBall = await Ball.create({
+      matchId,
+      ...ballData,
+    });
+
+    // 2. Update the match state
+    const updatedMatch = await Match.findByIdAndUpdate(
+      matchId,
+      { $set: matchState },
+      { new: true, runValidators: true },
+    )
+      .populate("venue")
+      .populate("currentBatter.player", "name")
+      .populate("currentBowler.player", "name")
+      .populate("playerOfTheMatch", "name")
+      .populate("teams.playing11.player", "name")
+      .populate("teams.playing11.batting.dismissedBy", "name")
+      .populate("teams.playing11.batting.dismissedByBowler", "name");
+
+    io.to(matchId).emit("matchUpdated", updatedMatch);
+
+    res.status(200).json({
+      success: true,
+      data: updatedMatch,
+      ball: newBall,
     });
   } catch (error) {
     res.status(500).json({

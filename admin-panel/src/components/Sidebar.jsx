@@ -11,6 +11,8 @@ import {
   MenuFoldOutlined,
   LogoutOutlined,
   SettingOutlined,
+  FileTextFilled,
+  DollarCircleFilled,
 } from "@ant-design/icons";
 import { useAuth } from "../context/AuthContext";
 
@@ -46,6 +48,8 @@ const Sidebar = () => {
     },
     { path: "/create-venue", label: "Venues", icon: <EnvironmentOutlined /> },
     { path: "/create-player", label: "Players", icon: <UserAddOutlined /> },
+    { path: "/articles", label: "Articles", icon: <FileTextFilled /> },
+    { path: "/ads", label: "Ads", icon: <DollarCircleFilled /> },
   ];
 
   if (user?.role === "SUPER_ADMIN" || user?.role === "TECH_ADMIN") {

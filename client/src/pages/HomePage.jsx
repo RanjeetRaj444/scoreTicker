@@ -8,8 +8,13 @@ export const SOCKET_SERVER_URL =
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
+import useArticles from "../hooks/useArticles";
+import AdUnit from "../components/AdUnit";
+
 const HomePage = () => {
   const [matches, setMatches] = useState([]);
+  const [articles, setArticles] = useState([]);
+  const { getPublishedArticles } = useArticles();
 
   const getMatches = async () => {
     try {
@@ -20,8 +25,18 @@ const HomePage = () => {
     }
   };
 
+  const getArticles = async () => {
+    try {
+      const data = await getPublishedArticles({ category: "News" });
+      setArticles(data.slice(0, 4)); // Get top 4 news articles
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     getMatches();
+    getArticles();
   }, []);
 
   const getStatusClass = (status) => {
@@ -57,6 +72,10 @@ const HomePage = () => {
             <div className="w-1 h-2 bg-white rounded-full" />
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 -mt-10 mb-10">
+        <AdUnit placement="HomeHero" />
       </div>
 
       {/* Matches Section */}
@@ -184,6 +203,54 @@ const HomePage = () => {
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Latest News Section */}
+      <div className="max-w-7xl mx-auto px-6 mb-32">
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Editor's Picks</h2>
+            <div className="h-1 w-16 bg-orange-500 rounded-full" />
+          </div>
+          <Link
+            to="/news"
+            className="text-sm font-black text-zinc-500 hover:text-orange-500 uppercase tracking-widest transition-colors"
+          >
+            View All Stories
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {articles.map((article, i) => (
+            <Link key={i} to={`/news/${article.slug}`} className="group block">
+              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-zinc-900 border border-white/5">
+                {article.thumbnail ? (
+                  <img
+                    src={article.thumbnail}
+                    alt={article.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl opacity-20 group-hover:rotate-6 transition-transform">
+                    📰
+                  </div>
+                )}
+                <div className="absolute top-3 left-3">
+                  <span className="bg-black/60 backdrop-blur-md text-[9px] font-black text-white px-2 py-1 rounded uppercase tracking-widest border border-white/10">
+                    {article.category}
+                  </span>
+                </div>
+              </div>
+              <h3 className="text-lg font-bold leading-tight group-hover:text-orange-500 transition-colors line-clamp-2 italic tracking-tight">
+                {article.title}
+              </h3>
+              <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-2">
+                {new Date(article.createdAt).toLocaleDateString()} •{" "}
+                {article.views} Views
+              </p>
+            </Link>
+          ))}
         </div>
       </div>
 

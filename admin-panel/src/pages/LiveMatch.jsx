@@ -44,7 +44,7 @@ const LiveMatchUpdate = () => {
   const [selectedExtra, setSelectedExtra] = useState(null);
   const [matchHistory, setMatchHistory] = useState([]);
 
-  const { getMatch, updateMatch } = useMatch();
+  const { getMatch, updateMatch, recordBall } = useMatch();
   const { id } = useParams();
 
   useEffect(() => {
@@ -165,18 +165,9 @@ const LiveMatchUpdate = () => {
           const teamBatIdx = match.teams.findIndex(
             (t) => t._id === match.currentTeamBatting,
           );
-          const teamBowlIdx = match.teams.findIndex(
-            (t) => t._id === match.currentTeamBowling,
-          );
           const payload = {
             ...match,
-            currentTeamBatting: match.teams[teamBowlIdx]._id,
-            currentTeamBowling: match.teams[teamBatIdx]._id,
-            currentInnings: match.currentInnings + 1,
-            overPlayed: 0,
-            currentBatter: null,
-            currentBowler: null,
-            recentBalls: [],
+            matchStatus: "Innings Break",
             targetScore:
               match.currentInnings === 1
                 ? match.teams[teamBatIdx].totalScore + 1
@@ -184,7 +175,7 @@ const LiveMatchUpdate = () => {
           };
           const data = await updateMatch(id, payload);
           setMatch(data);
-          notification.success({ message: "Next Innings Started" });
+          notification.success({ message: "Innings Ended. Match in Break." });
         }
       }
     }
@@ -343,8 +334,30 @@ const LiveMatchUpdate = () => {
     mainPayload.currentBowler = overEnded ? null : bowlerPayload;
     if (overEnded) mainPayload.prevBowler = currentBowler.player._id;
 
+    // Ball Data for per-ball persistence
+    const ballData = {
+      innings: match.currentInnings,
+      over: Math.floor(matchOverPlayed),
+      ball: Math.round((matchOverPlayed % 1) * 10) || 6,
+      batsman: currentBatter.player._id,
+      bowler: currentBowler.player._id,
+      runs: runAction,
+      extras: {
+        type: selectedExtra?.type || "None",
+        runs: runExtra,
+      },
+      wicket: {
+        isWicket: isWicket,
+        type: wicketType,
+        player: isWicket ? currentBatter.player._id : null,
+      },
+      commentary: desc,
+      scoreAtBall: mainPayload.teams[batIdx].totalScore,
+      wicketsAtBall: mainPayload.teams[batIdx].totalWickets,
+    };
+
     try {
-      const updated = await updateMatch(id, mainPayload);
+      const updated = await recordBall(id, ballData, mainPayload);
       setMatchHistory((prev) => [match, ...prev].slice(0, 5));
       setMatch(updated);
       setSelectedAction(null);
@@ -683,6 +696,45 @@ const LiveMatchUpdate = () => {
               </div>
             </Col>
           </Row>
+        ) : match.matchStatus === "Innings Break" ? (
+          <div className="max-w-2xl mx-auto bg-white p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl border border-zinc-100 text-center animate-slide-up">
+            <div className="w-16 h-16 md:w-24 md:h-24 bg-orange-100 text-orange-600 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-10 shadow-inner">
+              <span className="text-3xl md:text-5xl">☕</span>
+            </div>
+            <h2 className="text-2xl md:text-4xl font-black text-zinc-900 mb-4 tracking-tighter uppercase italic">
+              Innings <span className="text-orange-500">Break</span>
+            </h2>
+            <p className="text-zinc-500 mb-8 md:mb-12 font-bold text-base md:text-lg max-w-sm mx-auto leading-tight">
+              The first innings has concluded. Prepare the teams for the chase.
+            </p>
+
+            <Button
+              className="w-full h-16 md:h-20 bg-zinc-900 text-white font-black text-lg md:text-xl rounded-2xl border-none hover:!bg-black mt-8 md:mt-14 transition-all shadow-2xl shadow-zinc-900/40 uppercase tracking-widest"
+              onClick={async () => {
+                const teamBatIdx = match.teams.findIndex(
+                  (t) => t._id === match.currentTeamBatting,
+                );
+                const teamBowlIdx = match.teams.findIndex(
+                  (t) => t._id === match.currentTeamBowling,
+                );
+                const payload = {
+                  ...match,
+                  matchStatus: "Ongoing",
+                  currentTeamBatting: match.teams[teamBowlIdx]._id,
+                  currentTeamBowling: match.teams[teamBatIdx]._id,
+                  currentInnings: match.currentInnings + 1,
+                  overPlayed: 0,
+                  currentBatter: null,
+                  currentBowler: null,
+                  recentBalls: [],
+                };
+                const data = await updateMatch(id, payload);
+                setMatch(data);
+              }}
+            >
+              Start Next Innings
+            </Button>
+          </div>
         ) : (
           <div className="max-w-2xl mx-auto bg-white p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl border border-zinc-100 text-center animate-slide-up">
             <div className="w-16 h-16 md:w-24 md:h-24 bg-orange-100 text-orange-600 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-10 shadow-inner rotate-3">
